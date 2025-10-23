@@ -8,6 +8,16 @@
 #include "imgui.h"
 #include "backends/imgui_impl_glfw.h"
 #include "backends/imgui_impl_opengl3.h"
+#include "helpers/Shader.hpp"
+
+
+float vertices[] = {
+    -0.5f, -0.5f, 0.0f,
+     0.5f, -0.5f, 0.0f,
+     0.0f,  0.5f, 0.0f
+};
+
+
 void setupColors();
 
 int main(int argc, char *argv[]) {
@@ -26,6 +36,8 @@ int main(int argc, char *argv[]) {
     exit(1);
   }
 
+    auto shader = Shader("assets/shaders/vert.glsl", "assets/shaders/frag.glsl");
+
   IMGUI_CHECKVERSION();
   ImGui::CreateContext();
   ImGuiIO& io = ImGui::GetIO();
@@ -37,7 +49,7 @@ int main(int argc, char *argv[]) {
 
   while (!glfwWindowShouldClose(wwindow))
   {
-
+    shader.use();
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();

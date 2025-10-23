@@ -14,7 +14,8 @@ set(SOURCES
   src/main.cpp
 
   include/glad/glad.c
-  # include/stb/stb_image.c
+        src/helpers/Shader.hpp
+        # include/stb/stb_image.c
 )
 
 # ImGui
@@ -26,6 +27,8 @@ set(IMGUI_SOURCES
   imgui/imgui_demo.cpp
   imgui/backends/imgui_impl_glfw.cpp
   imgui/backends/imgui_impl_opengl3.cpp
+        src/helpers/Shader.cpp
+        src/helpers/Shader.hpp
 )
 
 add_executable(silk ${SOURCES} ${IMGUI_SOURCES})
