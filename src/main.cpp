@@ -4,7 +4,8 @@
 
 #include "backends/imgui_impl_glfw.h"
 #include "backends/imgui_impl_opengl3.h"
-#include "helpers/Shader.hpp"
+#include "Core/Camera.hpp"
+#include "Rendering/Shader.hpp"
 #include "imgui.h"
 
 #include <GLFW/glfw3.h>
@@ -36,7 +37,19 @@ unsigned int indices[] = {
 int WINDOW_WIDTH = 800;
 int WINDOW_HEIGHT = 600;
 
+Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
+float lastX = static_cast<float>(WINDOW_WIDTH) / 2.0f;
+float lastY = static_cast<float>(WINDOW_HEIGHT) / 2.0f;
+bool firstMouse = true;
+
+float deltaTime = 0.0f;
+float lastFrame = 0.0f;
+
 void setupColors();
+
+void processInput(GLFWwindow* window);
+void mouseMoveCallback(GLFWwindow* window, double x, double y);
+void scrollCallback(GLFWwindow* window, double x, double y);
 
 int main(int argc, char* argv[])
 {
@@ -55,6 +68,11 @@ int main(int argc, char* argv[])
     GLFWwindow* window =
         glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Silk Engine", nullptr, nullptr);
     glfwMakeContextCurrent(window);
+
+    glfwSetCursorPosCallback(window, mouseMoveCallback);
+    glfwSetScrollCallback(window, scrollCallback);
+
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     if (!gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress)))
     {
@@ -111,6 +129,12 @@ int main(int argc, char* argv[])
 
     while (!glfwWindowShouldClose(window))
     {
+        const auto currentFrame = static_cast<float>(glfwGetTime());
+        deltaTime = currentFrame - lastFrame;
+        lastFrame = currentFrame;
+
+        processInput(window);
+
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         shader.use();
@@ -121,12 +145,10 @@ int main(int argc, char* argv[])
         const float blue = (sin(time + 4.0f) + 1.0f) / 2.0f;
         shader.setVec3("triangleColor", red, green, blue);
 
-        auto view = glm::mat4();
-        view = glm::lookAt(glm::vec3(3.0f, 3.0f, 5.0f),
-                                 glm::vec3(0.0f, 0.0f, 0.0f),
-                                 glm::vec3(0.0f, 1.0f, 0.0f));
-        glm::mat4 projection = glm::perspective(glm::radians(45.0f), static_cast<float>(WINDOW_WIDTH) / static_cast<float>(WINDOW_HEIGHT), 0.1f,
-                                                100.0f);
+        auto view = camera.GetViewMatrix();
+        glm::mat4 projection = glm::perspective(
+            glm::radians(camera.Zoom),
+            static_cast<float>(WINDOW_WIDTH) / static_cast<float>(WINDOW_HEIGHT), 0.1f, 100.0f);
 
         shader.setMat4("projection", projection);
         shader.setMat4("view", view);
@@ -141,11 +163,28 @@ int main(int argc, char* argv[])
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
-        ImGui::Begin("tesr");
+        ImGui::Begin("test");
         ImGui::Text("FPS: %.1f", io.Framerate);
-        // window width and hright
+        // window width and height
         ImGui::Text("Width: %i", WINDOW_WIDTH);
         ImGui::Text("Height: %i", WINDOW_HEIGHT);
+
+        ImGui::Separator();
+
+        ImGui::Text("Camera Position: (%.2f, %.2f, %.2f)", camera.Position.x, camera.Position.y,
+                    camera.Position.z);
+        ImGui::Text("Camera Yaw: %.2f", camera.Yaw);
+        ImGui::Text("Camera Pitch: %.2f", camera.Pitch);
+        ImGui::Text("Camera Zoom: %.2f", camera.Zoom);
+
+        ImGui::Separator();
+
+        ImGui::Text("Controls:");
+        ImGui::Text("WASD - Move");
+        ImGui::Text("Space/Shift - Up/Down");
+        ImGui::Text("Mouse - Look around");
+        ImGui::Text("Scroll - Zoom");
+        ImGui::Text("ESC - Toggle cursor");
         ImGui::End();
 
         ImGui::Render();
@@ -189,4 +228,57 @@ void setupColors()
     style.FramePadding = ImVec2(6, 4);
     style.ItemSpacing = ImVec2(10, 8);
     style.IndentSpacing = 20.0f;
+}
+
+void processInput(GLFWwindow* window)
+{
+    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+    {
+        static bool cursorEnabled = false;
+        static double lastEscapeTime = 0.0;
+
+        if (const double currentTime = glfwGetTime(); currentTime - lastEscapeTime > 0.2)
+        {
+            cursorEnabled = !cursorEnabled;
+            glfwSetInputMode(window, GLFW_CURSOR,
+                             cursorEnabled ? GLFW_CURSOR_NORMAL : GLFW_CURSOR_DISABLED);
+            lastEscapeTime = currentTime;
+        }
+    }
+
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+        camera.ProcessKeyboardInput(FORWARD, deltaTime);
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+        camera.ProcessKeyboardInput(BACKWARD, deltaTime);
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+        camera.ProcessKeyboardInput(LEFT, deltaTime);
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+        camera.ProcessKeyboardInput(RIGHT, deltaTime);
+    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+        camera.ProcessKeyboardInput(UPWARD, deltaTime);
+    if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+        camera.ProcessKeyboardInput(DOWNWARD, deltaTime);
+}
+
+void mouseMoveCallback(GLFWwindow*, const double xPos, const double yPos)
+{
+    if (firstMouse)
+    {
+        lastX = static_cast<float>(xPos);
+        lastY = static_cast<float>(yPos);
+        firstMouse = false;
+    }
+
+    float xOffset = static_cast<float>(xPos) - lastX;
+    float yOffset = lastY - static_cast<float>(yPos);
+
+    lastX = static_cast<float>(xPos);
+    lastY = static_cast<float>(yPos);
+
+    camera.ProcessMouseInput(xOffset, yOffset, true);
+}
+
+void scrollCallback(GLFWwindow*, double, const double yOffset)
+{
+    camera.ProcessMouseScroll(static_cast<float>(yOffset));
 }
