@@ -1,10 +1,10 @@
 #version 330 core
-layout(location = 0) in vec3 aPos;
-layout(location = 1) in vec3 aCol;
+layout (location = 0) in vec3 aPos;
 
-out vec3 col;
+uniform mat4 projection;
+uniform mat4 view;
+uniform mat4 transform;
 
 void main() {
-    gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);
-    col = aCol;
+    gl_Position = projection * view * transform * vec4(aPos, 1.0);
 }
