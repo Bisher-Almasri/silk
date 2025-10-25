@@ -2,7 +2,7 @@
 // Created by Bisher Almasri on 2025-10-24.
 //
 
-#include "../Camera.hpp"
+#include "Camera.hpp"
 
 #include <glm/ext/matrix_transform.hpp>
 
