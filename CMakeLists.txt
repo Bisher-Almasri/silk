@@ -11,10 +11,17 @@ include_directories(include imgui src)
 add_subdirectory(include/tinygltf)
 
 set(SOURCES
-  src/main.cpp
+        src/main.cpp
 
   include/glad/glad.c
-        src/helpers/Shader.hpp
+        src/Rendering/Shader.cpp
+        src/Rendering/Shader.hpp
+        src/Core/Camera.cpp
+        src/Core/Camera.hpp
+        src/Core/Engine.cpp
+        src/Core/Engine.hpp
+        src/Core/EngineConfig.cpp
+        src/Core/EngineConfig.hpp
         # include/stb/stb_image.c
 )
 
@@ -27,8 +34,6 @@ set(IMGUI_SOURCES
   imgui/imgui_demo.cpp
   imgui/backends/imgui_impl_glfw.cpp
   imgui/backends/imgui_impl_opengl3.cpp
-        src/helpers/Shader.cpp
-        src/helpers/Shader.hpp
 )
 
 add_executable(silk ${SOURCES} ${IMGUI_SOURCES})

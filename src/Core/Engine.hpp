@@ -1,9 +1,15 @@
-//
-// Created by Bisher Almasri on 2025-10-24.
-//
 #pragma once
-#include <GLFW/glfw3.h>
+
+#include "EngineConfig.hpp"
+// clang-format off
+#include "glad/glad.h"
+// clang-format on
+
+#include <memory>
+#include <string>
 #include <chrono>
+#include <GLFW/glfw3.h>
+
 
 /**
  * Core engine class that manages initialization, main loop coordination,
@@ -11,15 +17,19 @@
  */
 class Engine
 {
-  public:
+public:
     Engine();
     ~Engine();
 
+    Engine(const Engine&) = delete;
+    Engine& operator=(const Engine&) = delete;
+
     /**
      * Initialize the engine with the given configuration
+     * @param config Engine configuration settings
      * @return true if initialization was successful
      */
-    bool Initialize();
+    bool Initialize(const EngineConfig& config);
 
     /**
      * Run the main engine loop
@@ -35,36 +45,26 @@ class Engine
     /**
      * Get the current frame delta time in seconds
      */
-    [[nodiscard]] float GetDeltaTime() const
-    {
-        return m_deltaTime;
-    }
+    [[nodiscard]] float GetDeltaTime() const { return m_deltaTime; }
 
     /**
      * Get the current frame rate
      */
-    [[nodiscard]] float GetFrameRate() const
-    {
-        return m_frameRate;
-    }
+    [[nodiscard]] float GetFrameRate() const { return m_frameRate; }
 
     /**
      * Get the GLFW window handle
      */
-    [[nodiscard]] GLFWwindow* GetWindow() const
-    {
-        return m_window;
-    }
+    [[nodiscard]] GLFWwindow* GetWindow() const { return m_window; }
 
     /**
      * Check if the engine is running
      */
-    [[nodiscard]] bool IsRunning() const
-    {
-        return m_isRunning;
-    }
+    [[nodiscard]] bool IsRunning() const { return m_isRunning; }
 
-  private:
+private:
+    std::unique_ptr<EngineConfig> m_config;
+
     GLFWwindow* m_window;
     bool m_isRunning;
 
