@@ -116,7 +116,7 @@ bool Engine::InitializeWindow()
         m_config->GetWindowWidth(),
         m_config->GetWindowHeight(),
         m_config->GetWindowTitle().c_str(),
-        nullptr,
+        m_config->IsFullscreen() ? glfwGetPrimaryMonitor() : nullptr,
         nullptr
         );
 

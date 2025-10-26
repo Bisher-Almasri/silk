@@ -22,6 +22,8 @@ set(SOURCES
         src/Core/Engine.hpp
         src/Core/EngineConfig.cpp
         src/Core/EngineConfig.hpp
+        src/Core/Math/Math.hpp
+        src/Core/Math/Quaternion.hpp
         # include/stb/stb_image.c
 )
 
@@ -34,6 +36,7 @@ set(IMGUI_SOURCES
   imgui/imgui_demo.cpp
   imgui/backends/imgui_impl_glfw.cpp
   imgui/backends/imgui_impl_opengl3.cpp
+        src/Core/Math/Vector3.hpp
 )
 
 add_executable(silk ${SOURCES} ${IMGUI_SOURCES})
